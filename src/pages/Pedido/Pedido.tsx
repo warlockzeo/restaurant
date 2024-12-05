@@ -63,7 +63,10 @@ const Pedido = () => {
         items: [...orders!.items, ...currentOrder],
         isActive: true,
         date: '',
-      }).then(() => setCurrentOrder([]));
+      }).then(() => {
+        setCurrentOrder([]);
+        navigate(-1);
+      });
     } catch (error) {
       console.error(error);
     }
@@ -80,9 +83,6 @@ const Pedido = () => {
 
     setCurrentOrder((prev) => [...prev, newItem]);
   };
-
-  const getProductName = (id: string) =>
-    products?.find((product) => product.id === id)?.name;
 
   useEffect(() => {
     if (!idStaff) {
@@ -101,24 +101,27 @@ const Pedido = () => {
   return (
     <>
       <PedidoWrap>
-        <>
-          {/* itens do menu com categoria e subcategoria */}
-          {isLoadingProducts ? (
-            <Loader />
-          ) : (
-            <div className='flex flex-col gap-1'>
-              {products?.map((product, index) => (
-                <button key={index} onClick={() => handleAddItem(product.id)}>
-                  {product.name}
-                </button>
-              ))}
-            </div>
-          )}
+        <OrderSummary
+          data={currentOrder}
+          products={products}
+          onSubmit={handleCreatePost}
+        />
 
-          <OrderSummary data={orders.items} products={products} />
+        {/* itens do menu com categoria e subcategoria */}
+        {isLoadingProducts ? (
+          <Loader />
+        ) : (
+          <div className='flex flex-col gap-3'>
+            {products?.map((product, index) => (
+              <button key={index} onClick={() => handleAddItem(product.id)}>
+                {product.name}
+              </button>
+            ))}
+          </div>
+        )}
 
-          {/* Itens adicionados por último ao pedido */}
-          <div className='flex flex-1 flex-col justify-between gap-1 overflow-hidden'>
+        {/* Itens adicionados por último ao pedido */}
+        {/* <div className='flex flex-1 flex-col justify-between gap-1 overflow-hidden'>
             <ul className='overflow-y-auto' style={{ flex: '0 0 40%' }}>
               {currentOrder?.map((item, index) => (
                 <li key={index}>{getProductName(item.productId)}</li>
@@ -127,11 +130,11 @@ const Pedido = () => {
             <button onClick={handleCreatePost} disabled={!currentOrder.length}>
               Adicionar
             </button>
-          </div>
+          </div> */}
 
-          {/* todos os itens do pedido */}
+        {/* todos os itens do pedido */}
 
-          {/* <div className='absolute bottom-0 left-0 bg-red-50 overflow-auto w-full h-20 p-2'>
+        {/* <div className='absolute bottom-0 left-0 bg-red-50 overflow-auto w-full h-20 p-2'>
           <h1 className='font-bold'>Pedidos da Mesa {idMesa}</h1>
           <ul>
             {orders?.items?.map((item: IItem, index: number) => (
@@ -139,7 +142,6 @@ const Pedido = () => {
             ))}
           </ul>
         </div> */}
-        </>
       </PedidoWrap>
     </>
   );

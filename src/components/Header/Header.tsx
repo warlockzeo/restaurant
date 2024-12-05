@@ -9,7 +9,9 @@ const Header = () => {
     <div className='p-3 flex justify-between'>
       logo
       {location.pathname !== '/' && (
-        <button onClick={() => navigate(-1)}>Voltar</button>
+        <button onClick={() => navigate(-1)} className='text-lg'>
+          Voltar
+        </button>
       )}
     </div>
   );

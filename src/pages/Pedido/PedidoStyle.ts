@@ -6,14 +6,4 @@ export const PedidoWrap = styled.div`
   flex-direction: column;
   max-width: 100%;
   flex: 1;
-
-  button {
-    border-radius: 15px;
-    background-color: #ccc;
-
-    &:hover {
-      background-color: blue;
-      color: white;
-    }
-  }
 `;

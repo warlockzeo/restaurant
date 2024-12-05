@@ -9,14 +9,9 @@ export const TablesWrap = styled.div`
   justify-content: center;
 
   button {
-    flex: 0 0 33%;
+    flex: 0 0 49%;
     height: 200px;
     border-radius: 15px;
     background-color: #ccc;
-
-    &:hover {
-      background-color: blue;
-      color: white;
-    }
   }
 `;

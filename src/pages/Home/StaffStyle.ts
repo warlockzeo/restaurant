@@ -2,14 +2,9 @@ import styled from 'styled-components';
 
 export const StaffWrap = styled.div`
   padding: 10px;
-
-  button {
-    width: 100%;
-    height: 100px;
-
-    &:hover {
-      background-color: blue;
-      color: white;
-    }
-  }
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  flex: 1;
+  gap: 8px;
 `;
