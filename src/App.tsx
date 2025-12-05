@@ -30,49 +30,19 @@
 
 // export default App;
 
-// Novo layout com tema escuro, menu por categorias e dashboard em tempo real
-// (React + Tailwind + Arrow Functions)
-
-// Novo layout com tema escuro, menu por categorias e dashboard em tempo real — agora em TypeScript
-// (React + Tailwind + Arrow Functions)
-
 import React, { useState, useEffect } from 'react';
-
-type Table = {
-  id: string;
-  name: string;
-};
-
-type MenuItem = {
-  id: string;
-  name: string;
-  price: number;
-  type: 'Comida' | 'Bebida';
-};
-
-type OrderItem = MenuItem & {
-  qty: number;
-};
-
-type Order = {
-  waiterId: string | null;
-  items: OrderItem[];
-  createdAt: number;
-};
-
-const SAMPLE_TABLES: Table[] = Array.from({ length: 10 }).map((_, i) => ({
-  id: `T${i + 1}`,
-  name: `Mesa ${i + 1}`,
-}));
-
-const SAMPLE_MENU: MenuItem[] = [
-  { id: 'p1', name: 'Pão de Alho', price: 4.5, type: 'Comida' },
-  { id: 'p2', name: 'Salada Caesar', price: 18, type: 'Comida' },
-  { id: 'p3', name: 'Parmegiana', price: 28, type: 'Comida' },
-  { id: 'b1', name: 'Refrigerante', price: 6, type: 'Bebida' },
-  { id: 'b2', name: 'Cerveja', price: 8, type: 'Bebida' },
-  { id: 'b3', name: 'Água', price: 4, type: 'Bebida' },
-];
+import { SAMPLE_MENU, SAMPLE_TABLES, SAMPLE_WAITERS } from './utils/mockData';
+import {
+  categs,
+  Waiter,
+  Table,
+  MenuItem,
+  Order,
+  OrderItem,
+} from './utils/types';
+import { MenuCategory } from './components/MenuCategory/MenuCategory';
+import { TableButton } from './components/TableButton/TableButton';
+import { OrderItemRow } from './components/OrderItemRow/OrderItemRow';
 
 const STORAGE_KEY = 'restaurante_layout_v4_ts';
 
@@ -93,6 +63,7 @@ const saveState = (state: { orders: OrdersMap }) => {
 const App: React.FC = () => {
   const [dark, setDark] = useState(false);
   const [tables] = useState<Table[]>(SAMPLE_TABLES);
+  const [waiters] = useState<Waiter[]>(SAMPLE_WAITERS);
   const [menu] = useState<MenuItem[]>(SAMPLE_MENU);
   const [orders, setOrders] = useState<OrdersMap>(
     () => loadState().orders || {}
@@ -134,20 +105,23 @@ const App: React.FC = () => {
     });
   };
 
-  const deleteItem = (tableId: string, product: MenuItem) => {
-    const prev = orders;
-
-    const order = prev[tableId] || {
-      items: [] as OrderItem[],
-      waiterId: null,
-      createdAt: Date.now(),
-    };
-    const existing = order.items.find((i) => i.id === product.id);
-    if (existing) existing.qty++;
-    else order.items.push({ ...product, qty: 1 });
-
+  const deleteItem = (tableId: string, itemId: string) => {
     setOrders((prev) => {
-      return { ...prev, [tableId]: { ...order } };
+      const order = prev[tableId];
+      if (!order) return prev;
+      const updated = order.items.filter((i) => i.id !== itemId);
+      return { ...prev, [tableId]: { ...order, items: updated } };
+    });
+  };
+
+  const changeQty = (tableId: string, itemId: string, delta: number) => {
+    setOrders((prev) => {
+      const order = prev[tableId];
+      if (!order) return prev;
+      const updated = order.items.map((i) =>
+        i.id === itemId ? { ...i, qty: Math.max(1, i.qty + delta) } : i
+      );
+      return { ...prev, [tableId]: { ...order, items: updated } };
     });
   };
 
@@ -175,22 +149,11 @@ const App: React.FC = () => {
     win.print();
   };
 
-  const categories: Array<'Comida' | 'Bebida'> = ['Comida', 'Bebida'];
+  const categories = categs;
 
   return (
     <div className={`${dark ? 'dark' : ''}`}>
       <div className='min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 p-4 pb-20'>
-        {/* HEADER */}
-        <div className='flex justify-between mb-4'>
-          <h1 className='text-2xl font-bold'>🍽️ Sistema de Pedidos</h1>
-          <button
-            className='px-3 py-1 rounded-lg bg-gray-800 text-white text-sm'
-            onClick={() => setDark(!dark)}
-          >
-            {dark ? '🌞 Claro' : '🌙 Escuro'}
-          </button>
-        </div>
-
         {/* DASHBOARD BUTTON */}
         <button
           className='mb-4 w-full p-3 bg-indigo-600 text-white rounded-xl shadow'
@@ -212,8 +175,8 @@ const App: React.FC = () => {
                     key={t.id}
                     className={`p-4 rounded-xl shadow ${
                       order
-                        ? 'bg-green-600 text-white'
-                        : 'bg-white dark:bg-gray-800'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-green-600 text-white'
                     }`}
                   >
                     <div className='font-bold'>{t.name}</div>
@@ -224,9 +187,7 @@ const App: React.FC = () => {
                           <div>Total: R$ {total(order).toFixed(2)}</div>
                         </>
                       ) : (
-                        <span className='text-gray-500 dark:text-gray-400'>
-                          Livre
-                        </span>
+                        <span className='text-white-500'>Livre</span>
                       )}
                     </div>
                   </div>
@@ -244,17 +205,15 @@ const App: React.FC = () => {
               <div className='space-y-3 animate-fadeIn'>
                 <h2 className='text-lg font-semibold'>Selecione a mesa</h2>
                 {tables.map((t) => (
-                  <button
-                    key={t.id}
-                    className='w-full p-3 rounded-xl bg-white dark:bg-gray-800 shadow hover:bg-gray-50 dark:hover:bg-gray-700 flex justify-between'
+                  <TableButton
+                    table={t}
+                    occupied={!!orders[t.id]}
                     onClick={() => {
                       createOrder(t.id);
                       setActiveTable(t.id);
                     }}
-                  >
-                    <span>{t.name}</span>
-                    <span>➡️</span>
-                  </button>
+                    isActive={false} //não está fazendo nada
+                  />
                 ))}
               </div>
             )}
@@ -279,22 +238,12 @@ const App: React.FC = () => {
                   )}
 
                   {orders[activeTable].items.map((i) => (
-                    <div
-                      key={i.id}
-                      className='flex justify-between py-2 border-b border-gray-300 dark:border-gray-700 text-sm'
-                    >
-                      <span>
-                        {i.qty}× {i.name}
-                      </span>
-                      <span>R$ {(i.price * i.qty).toFixed(2)}</span>
-                      <button
-                        key={i.id}
-                        className='p-3 bg-indigo-600 text-white rounded-xl shadow active:scale-95'
-                        onClick={() => deleteItem(activeTable, i)}
-                      >
-                        X
-                      </button>
-                    </div>
+                    <OrderItemRow
+                      item={i}
+                      onDecrease={() => changeQty(activeTable, i.id, -1)}
+                      onDelete={() => deleteItem(activeTable, i.id)}
+                      onIncrease={() => changeQty(activeTable, i.id, 1)}
+                    />
                   ))}
 
                   <div className='text-right font-bold pt-2'>
@@ -304,28 +253,11 @@ const App: React.FC = () => {
 
                 {/* MENU CATEGORIES */}
                 {categories.map((cat) => (
-                  <div
-                    key={cat}
-                    className='bg-white dark:bg-gray-800 rounded-xl shadow p-4'
-                  >
-                    <h3 className='font-semibold mb-3'>{cat}</h3>
-                    <div className='grid grid-cols-2 gap-3'>
-                      {menu
-                        .filter((p) => p.type === cat)
-                        .map((p) => (
-                          <button
-                            key={p.id}
-                            className='p-3 bg-indigo-600 text-white rounded-xl shadow active:scale-95'
-                            onClick={() => addItem(activeTable, p)}
-                          >
-                            <div className='font-medium text-sm'>{p.name}</div>
-                            <div className='text-xs opacity-80'>
-                              R$ {p.price.toFixed(2)}
-                            </div>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
+                  <MenuCategory
+                    category={cat}
+                    items={menu.filter((p) => p.type === cat)}
+                    onAdd={(prod) => addItem(activeTable, prod)}
+                  />
                 ))}
 
                 <button
@@ -357,9 +289,28 @@ const App: React.FC = () => {
                       key={i.id}
                       className='flex justify-between py-2 border-b border-gray-300 dark:border-gray-700 text-sm'
                     >
-                      <span>
-                        {i.qty}× {i.name}
-                      </span>
+                      <span>{i.name}</span>
+                      <div className='flex items-center gap-2'>
+                        <button
+                          className='px-2 bg-gray-600 text-white rounded'
+                          onClick={() => changeQty(activeTable, i.id, -1)}
+                        >
+                          -
+                        </button>
+                        <span>{i.qty}</span>
+                        <button
+                          className='px-2 bg-gray-600 text-white rounded'
+                          onClick={() => changeQty(activeTable, i.id, 1)}
+                        >
+                          +
+                        </button>
+                        <button
+                          className='ml-2 text-red-500 font-bold'
+                          onClick={() => deleteItem(activeTable, i.id)}
+                        >
+                          ✖
+                        </button>
+                      </div>
                       <span>R$ {(i.price * i.qty).toFixed(2)}</span>
                     </div>
                   ))}

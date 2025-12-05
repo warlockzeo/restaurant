@@ -3,6 +3,10 @@ import { IItem } from './types';
 import { ITable } from './types';
 import { IOrder } from './types';
 
+//==========================================
+import { MenuItem, Waiter, Table } from './types';
+//==========================================
+
 const tables: ITable[] = [
   { id: 't1', number: '1' },
   { id: 't2', number: '2' },
@@ -170,3 +174,27 @@ export const createProduct = async (data: IProduct): Promise<IProduct> => {
   products.push(data);
   return data;
 };
+
+//========================================
+export const SAMPLE_MENU: MenuItem[] = [
+  { id: 'p1', name: 'Pão de Alho', price: 4.5, type: 'Comida' },
+  { id: 'p2', name: 'Salada Caesar', price: 18, type: 'Comida' },
+  { id: 'p3', name: 'Parmegiana', price: 28, type: 'Comida' },
+  { id: 'b1', name: 'Refrigerante', price: 6, type: 'Bebida' },
+  { id: 'b2', name: 'Cerveja', price: 8, type: 'Bebida' },
+  { id: 'b3', name: 'Água', price: 4, type: 'Bebida' },
+  { id: 's1', name: 'Sorvete', price: 12, type: 'Sobremesa' },
+  { id: 's2', name: 'Pudim', price: 10, type: 'Sobremesa' },
+  { id: 'c1', name: 'Café Expresso', price: 5, type: 'Café' },
+  { id: 'c2', name: 'Cappuccino', price: 7, type: 'Café' },
+];
+
+export const SAMPLE_WAITERS: Waiter[] = [
+  { id: 'w1', name: 'Ana' },
+  { id: 'w2', name: 'Bruno' },
+  { id: 'w3', name: 'Carla' },
+];
+
+export const SAMPLE_TABLES: Table[] = Array.from({ length: 10 }).map(
+  (_, i) => ({ id: `T${i + 1}`, name: `Mesa ${i + 1}` })
+);
