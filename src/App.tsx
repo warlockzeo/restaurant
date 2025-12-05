@@ -74,7 +74,11 @@ const App: React.FC = () => {
   const [dashboard, setDashboard] = useState(false);
 
   useEffect(() => saveState({ orders }), [orders]);
-
+  useEffect(() => {
+    if (dashboard) {
+      setActiveTable('');
+    }
+  }, [dashboard]);
   const createOrder = (tableId: string) => {
     if (!orders[tableId]) {
       setOrders((prev) => ({
@@ -138,15 +142,21 @@ const App: React.FC = () => {
         ${order.items
           .map(
             (i) =>
-              `<li>${i.qty}× ${i.name} — R$ ${(i.qty * i.price).toFixed(
-                2
-              )}</li>`
+              `<li>${i.qty}× ${i.name} — € ${(i.qty * i.price).toFixed(2)}</li>`
           )
           .join('')}
       </ul>
-      <h2>Total: R$ ${total(order).toFixed(2)}</h2>
+      <h2>Total: € ${total(order).toFixed(2)}</h2>
     `);
     win.print();
+  };
+
+  const freeTable = () => {
+    const updated = { ...orders };
+    delete updated[activeTable];
+    setOrders(updated);
+    setActiveTable('');
+    setShowCheckout(false);
   };
 
   const categories = categs;
@@ -184,7 +194,7 @@ const App: React.FC = () => {
                       {order ? (
                         <>
                           <div>Itens: {order.items.length}</div>
-                          <div>Total: R$ {total(order).toFixed(2)}</div>
+                          <div>Total: € {total(order).toFixed(2)}</div>
                         </>
                       ) : (
                         <span className='text-white-500'>Livre</span>
@@ -245,10 +255,6 @@ const App: React.FC = () => {
                       onIncrease={() => changeQty(activeTable, i.id, 1)}
                     />
                   ))}
-
-                  <div className='text-right font-bold pt-2'>
-                    Total: R$ {total(orders[activeTable]).toFixed(2)}
-                  </div>
                 </div>
 
                 {/* MENU CATEGORIES */}
@@ -262,7 +268,11 @@ const App: React.FC = () => {
 
                 <button
                   className='w-full p-4 rounded-xl bg-green-600 text-white font-bold shadow'
-                  onClick={() => setShowCheckout(true)}
+                  onClick={() =>
+                    orders[activeTable].items.length
+                      ? setShowCheckout(true)
+                      : freeTable()
+                  }
                 >
                   Finalizar Pedido
                 </button>
@@ -285,38 +295,17 @@ const App: React.FC = () => {
 
                 <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-4 mt-3'>
                   {orders[activeTable].items.map((i) => (
-                    <div
-                      key={i.id}
-                      className='flex justify-between py-2 border-b border-gray-300 dark:border-gray-700 text-sm'
-                    >
-                      <span>{i.name}</span>
-                      <div className='flex items-center gap-2'>
-                        <button
-                          className='px-2 bg-gray-600 text-white rounded'
-                          onClick={() => changeQty(activeTable, i.id, -1)}
-                        >
-                          -
-                        </button>
-                        <span>{i.qty}</span>
-                        <button
-                          className='px-2 bg-gray-600 text-white rounded'
-                          onClick={() => changeQty(activeTable, i.id, 1)}
-                        >
-                          +
-                        </button>
-                        <button
-                          className='ml-2 text-red-500 font-bold'
-                          onClick={() => deleteItem(activeTable, i.id)}
-                        >
-                          ✖
-                        </button>
-                      </div>
-                      <span>R$ {(i.price * i.qty).toFixed(2)}</span>
-                    </div>
+                    <OrderItemRow
+                      item={i}
+                      onDecrease={() => changeQty(activeTable, i.id, -1)}
+                      onDelete={() => deleteItem(activeTable, i.id)}
+                      onIncrease={() => changeQty(activeTable, i.id, 1)}
+                      showPrice
+                    />
                   ))}
 
                   <div className='text-right font-bold text-lg pt-3'>
-                    Total: R$ {total(orders[activeTable]).toFixed(2)}
+                    Total: € {total(orders[activeTable]).toFixed(2)}
                   </div>
 
                   <button
@@ -328,13 +317,7 @@ const App: React.FC = () => {
 
                   <button
                     className='w-full mt-2 p-4 rounded-xl bg-gray-500 text-white font-bold shadow'
-                    onClick={() => {
-                      const updated = { ...orders };
-                      delete updated[activeTable];
-                      setOrders(updated);
-                      setActiveTable('');
-                      setShowCheckout(false);
-                    }}
+                    onClick={freeTable}
                   >
                     ✔️ Fechar Mesa
                   </button>

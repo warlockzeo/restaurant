@@ -6,6 +6,7 @@ type Props = {
   onIncrease: () => void;
   onDecrease: () => void;
   onDelete: () => void;
+  showPrice?: boolean;
 };
 
 export const OrderItemRow: React.FC<Props> = ({
@@ -13,6 +14,7 @@ export const OrderItemRow: React.FC<Props> = ({
   onIncrease,
   onDecrease,
   onDelete,
+  showPrice = false,
 }) => (
   <div className='flex justify-between py-2 border-b border-gray-300 dark:border-gray-700 text-sm'>
     <div className='flex items-center gap-2'>
@@ -35,7 +37,7 @@ export const OrderItemRow: React.FC<Props> = ({
       <span>{item.name}</span>
     </div>
     <div>
-      <span>R$ {(item.price * item.qty).toFixed(2)}</span>
+      {showPrice ? <span>€ {(item.price * item.qty).toFixed(2)}</span> : null}
       <button className='ml-2 text-red-500 font-bold' onClick={onDelete}>
         ✖
       </button>

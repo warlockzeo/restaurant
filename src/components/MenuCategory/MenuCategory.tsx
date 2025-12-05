@@ -18,7 +18,6 @@ export const MenuCategory: React.FC<Props> = ({ category, items, onAdd }) => (
           onClick={() => onAdd(p)}
         >
           <div className='font-medium text-sm'>{p.name}</div>
-          <div className='text-xs opacity-80'>R$ {p.price.toFixed(2)}</div>
         </button>
       ))}
     </div>
