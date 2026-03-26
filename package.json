@@ -51,7 +51,6 @@
   "scripts": {
     "css": "postcss ./src/assets/tailwind/tailwind.css -o ./src/assets/tailwind/tailwind.generated.css",
     "prestart": "npm run css",
-    "prebuild": "cross-env NODE_ENV=production npm run css",
     "run-server": "npx serve -s build",
     "start": "craco start",
     "build": "craco build",

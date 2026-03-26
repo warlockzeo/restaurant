@@ -1,13 +1,11 @@
 import React from 'react';
 
-import { LoaderWrap } from './LoaderStyle';
-
 const Loader = ({ isLoading = true }: { isLoading?: boolean }) => {
   if (isLoading) {
     return (
-      <LoaderWrap>
-        <div className='loader'>Carregando ...</div>
-      </LoaderWrap>
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='text-lg font-semibold text-gray-600'>Carregando...</div>
+      </div>
     );
   }
   return null;
