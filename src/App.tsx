@@ -40,6 +40,8 @@ const App: React.FC = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [dashboard, setDashboard] = useState(false);
   const [activeWaiter, setActiveWaiter] = useState<string>('');
+  const [selectedDashboardTable, setSelectedDashboardTable] =
+    useState<string>('');
 
   console.log(waiters);
   useEffect(() => saveState({ orders }), [orders]);
@@ -49,6 +51,17 @@ const App: React.FC = () => {
       setActiveWaiter(''); // Resetar funcionário ao entrar no dashboard
     }
   }, [dashboard]);
+
+  useEffect(() => {
+    if (selectedDashboardTable && orders[selectedDashboardTable]) {
+      console.log(
+        '📋 Pedido da Mesa',
+        selectedDashboardTable,
+        ':',
+        orders[selectedDashboardTable],
+      );
+    }
+  }, [selectedDashboardTable, orders]);
   const createOrder = (tableId: string) => {
     if (!orders[tableId]) {
       setOrders((prev) => ({
@@ -70,9 +83,14 @@ const App: React.FC = () => {
       waiterId: null,
       createdAt: Date.now(),
     };
-    const existing = order.items.find((i) => i.id === product.id);
-    if (existing) existing.qty++;
-    else order.items.push({ ...product, qty: 1 });
+
+    // Sempre adiciona um novo item individual para cada venda
+    order.items.push({
+      ...product,
+      qty: 1,
+      staff: activeWaiter,
+      id: `${product.id}_${Date.now()}_${Math.random()}`, // ID único para cada venda
+    });
 
     setOrders((prev) => {
       return { ...prev, [tableId]: { ...order } };
@@ -112,7 +130,9 @@ const App: React.FC = () => {
         ${order.items
           .map(
             (i) =>
-              `<li>${i.qty}× ${i.name} — € ${(i.qty * i.price).toFixed(2)}</li>`,
+              `<li>${i.qty}× ${i.name} — € ${(i.qty * i.price).toFixed(2)} ${
+                i.staff ? `(por: ${i.staff})` : ''
+              }</li>`,
           )
           .join('')}
       </ul>
@@ -179,33 +199,146 @@ const App: React.FC = () => {
           <div className='animate-fadeIn space-y-4'>
             <h2 className='text-xl font-semibold'>📊 Status das Mesas</h2>
 
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-              {tables.map((t) => {
-                const order = orders[t.id];
-                return (
-                  <div
-                    key={t.id}
-                    className={`p-4 rounded-xl shadow ${
-                      order
-                        ? 'bg-red-600 text-white'
-                        : 'bg-green-600 text-white'
-                    }`}
+            {selectedDashboardTable && orders[selectedDashboardTable] ? (
+              // DETALHES DO PEDIDO DA MESA SELECIONADA
+              <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-4'>
+                <div className='flex justify-between items-center mb-4'>
+                  <h3 className='text-lg font-bold'>
+                    Pedido - Mesa {selectedDashboardTable}
+                  </h3>
+                  <button
+                    className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium'
+                    onClick={() => setSelectedDashboardTable('')}
                   >
-                    <div className='font-bold'>{t.name}</div>
-                    <div className='text-sm mt-1'>
-                      {order ? (
-                        <>
-                          <div>Itens: {order.items.length}</div>
-                          <div>Total: € {total(order).toFixed(2)}</div>
-                        </>
-                      ) : (
-                        <span className='text-white-500'>Livre</span>
-                      )}
-                    </div>
+                    ← Voltar
+                  </button>
+                </div>
+
+                <div className='space-y-3 mb-4'>
+                  {(() => {
+                    // Agrupar itens por produto e depois por funcionário
+                    const groupedByProduct = orders[
+                      selectedDashboardTable
+                    ].items.reduce(
+                      (acc, item) => {
+                        if (!acc[item.name]) {
+                          acc[item.name] = {};
+                        }
+                        if (!acc[item.name][item.staff || 'N/A']) {
+                          acc[item.name][item.staff || 'N/A'] = {
+                            items: [],
+                            totalQty: 0,
+                            totalPrice: 0,
+                          };
+                        }
+                        acc[item.name][item.staff || 'N/A'].items.push(item);
+                        acc[item.name][item.staff || 'N/A'].totalQty +=
+                          item.qty;
+                        acc[item.name][item.staff || 'N/A'].totalPrice +=
+                          item.qty * item.price;
+                        return acc;
+                      },
+                      {} as Record<
+                        string,
+                        Record<
+                          string,
+                          {
+                            items: OrderItem[];
+                            totalQty: number;
+                            totalPrice: number;
+                          }
+                        >
+                      >,
+                    );
+
+                    return Object.entries(groupedByProduct).map(
+                      ([productName, staffGroups]) => (
+                        <div
+                          key={productName}
+                          className='bg-gray-50 dark:bg-gray-700 rounded-lg p-3'
+                        >
+                          <h4 className='font-bold text-gray-900 dark:text-white mb-2'>
+                            {productName}
+                          </h4>
+                          {Object.entries(staffGroups).map(
+                            ([staffName, data]) => (
+                              <div
+                                key={staffName}
+                                className='ml-4 mb-2 p-2 bg-white dark:bg-gray-600 rounded border-l-3 border-blue-500'
+                              >
+                                <div className='flex justify-between items-center'>
+                                  <div>
+                                    <div className='font-medium text-gray-900 dark:text-white'>
+                                      {data.totalQty}× vendidos
+                                    </div>
+                                    <div className='text-sm font-medium text-blue-600 dark:text-blue-400'>
+                                      👤 Vendido por: {staffName}
+                                    </div>
+                                  </div>
+                                  <div className='text-right'>
+                                    <div className='font-bold text-gray-900 dark:text-white'>
+                                      € {data.totalPrice.toFixed(2)}
+                                    </div>
+                                    <div className='text-sm text-gray-500 dark:text-gray-400'>
+                                      € {data.items[0]?.price.toFixed(2)} cada
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      ),
+                    );
+                  })()}
+                </div>
+
+                <div className='border-t pt-3'>
+                  <div className='flex justify-between items-center text-lg font-bold'>
+                    <span>Total:</span>
+                    <span>
+                      € {total(orders[selectedDashboardTable]).toFixed(2)}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </div>
+            ) : (
+              // GRID DE MESAS
+              <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+                {tables.map((t) => {
+                  const order = orders[t.id];
+                  const hasItems = order && order.items.length > 0;
+                  return (
+                    <div
+                      key={t.id}
+                      className={`p-4 rounded-xl shadow cursor-pointer transition-transform hover:scale-105 ${
+                        hasItems
+                          ? 'bg-red-600 text-white hover:bg-red-700'
+                          : 'bg-green-600 text-white'
+                      }`}
+                      onClick={() =>
+                        hasItems && setSelectedDashboardTable(t.id)
+                      }
+                    >
+                      <div className='font-bold'>{t.name}</div>
+                      <div className='text-sm mt-1'>
+                        {hasItems ? (
+                          <>
+                            <div>Itens: {order.items.length}</div>
+                            <div>Total: € {total(order).toFixed(2)}</div>
+                            <div className='text-xs mt-1 opacity-75'>
+                              Clique para ver detalhes
+                            </div>
+                          </>
+                        ) : (
+                          <span className='text-white-500'>Livre</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ) : (
           // SISTEMA DE PEDIDOS - com seleção de funcionário
@@ -246,7 +379,7 @@ const App: React.FC = () => {
                 {activeTable && !showCheckout && (
                   <div className='space-y-4 animate-fadeIn'>
                     <button
-                      className='text-sm underline'
+                      className='px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium'
                       onClick={() => leaveTable()}
                     >
                       ← Trocar Mesa
@@ -265,19 +398,76 @@ const App: React.FC = () => {
                         </p>
                       )}
 
-                      {orders[activeTable].items.map((i) => (
-                        <OrderItemRow
-                          item={i}
-                          onDecrease={() => changeQty(activeTable, i.id, -1)}
-                          onDelete={() => deleteItem(activeTable, i.id)}
-                          onIncrease={() => changeQty(activeTable, i.id, 1)}
-                        />
-                      ))}
+                      {(() => {
+                        // Agrupar itens por produto para visualização
+                        const groupedItems = orders[activeTable].items.reduce(
+                          (acc, item) => {
+                            if (!acc[item.name]) {
+                              acc[item.name] = {
+                                ...item,
+                                originalItems: [],
+                                totalQty: 0,
+                                staffs: new Set(),
+                              };
+                            }
+                            acc[item.name].originalItems.push(item);
+                            acc[item.name].totalQty += item.qty;
+                            acc[item.name].staffs.add(item.staff);
+                            return acc;
+                          },
+                          {} as Record<string, any>,
+                        );
+
+                        return Object.values(groupedItems).map(
+                          (groupedItem: any) => (
+                            <div
+                              key={groupedItem.name}
+                              className='mb-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg'
+                            >
+                              <div className='flex justify-between items-center'>
+                                <div className='font-medium text-gray-900 dark:text-white'>
+                                  {groupedItem.totalQty}× {groupedItem.name}
+                                </div>
+                                <div className='flex gap-2'>
+                                  <button
+                                    className='w-8 h-8 bg-red-500 text-white rounded hover:bg-red-600 flex items-center justify-center font-medium'
+                                    onClick={() => {
+                                      // Remove o último item adicionado deste produto
+                                      const lastItem =
+                                        groupedItem.originalItems[
+                                          groupedItem.originalItems.length - 1
+                                        ];
+                                      deleteItem(activeTable, lastItem.id);
+                                    }}
+                                  >
+                                    -
+                                  </button>
+                                  <button
+                                    className='w-8 h-8 bg-green-500 text-white rounded hover:bg-green-600 flex items-center justify-center font-medium'
+                                    onClick={() => {
+                                      // Adiciona novo item com o funcionário atual
+                                      addItem(activeTable, {
+                                        id: groupedItem.id,
+                                        name: groupedItem.name,
+                                        price: groupedItem.price,
+                                        type: groupedItem.type,
+                                      });
+                                    }}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ),
+                        );
+                      })()}
                     </div>
 
                     {/* MENU CATEGORIES */}
                     {categories.map((cat) => (
                       <MenuCategory
+                        key={cat}
                         category={cat}
                         items={menu.filter((p) => p.type === cat)}
                         onAdd={(prod) => addItem(activeTable, prod)}
@@ -301,7 +491,7 @@ const App: React.FC = () => {
                 {showCheckout && activeTable && (
                   <div className='animate-fadeIn'>
                     <button
-                      className='text-sm underline'
+                      className='px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium'
                       onClick={() => setShowCheckout(false)}
                     >
                       ← Voltar ao Pedido

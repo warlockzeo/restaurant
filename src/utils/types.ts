@@ -45,7 +45,7 @@ export type MenuItem = {
   price: number;
   type: Category;
 };
-export type OrderItem = MenuItem & { qty: number };
+export type OrderItem = MenuItem & { qty: number; staff: string };
 export type Order = {
   waiterId: string | null;
   items: OrderItem[];
