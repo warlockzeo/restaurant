@@ -36,16 +36,17 @@ const App: React.FC = () => {
   const [orders, setOrders] = useState<OrdersMap>(
     () => loadState().orders || {},
   );
-  const [activeWaiter, setActiveWaiter] = useState<string>('');
   const [activeTable, setActiveTable] = useState<string>('');
   const [showCheckout, setShowCheckout] = useState(false);
   const [dashboard, setDashboard] = useState(false);
+  const [activeWaiter, setActiveWaiter] = useState<string>('');
 
   console.log(waiters);
   useEffect(() => saveState({ orders }), [orders]);
   useEffect(() => {
     if (dashboard) {
       setActiveTable('');
+      setActiveWaiter(''); // Resetar funcionário ao entrar no dashboard
     }
   }, [dashboard]);
   const createOrder = (tableId: string) => {
@@ -138,198 +139,216 @@ const App: React.FC = () => {
 
   return (
     <div className={`${dark ? 'dark' : ''}`}>
-      {!activeWaiter ? (
-        <div className='min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 p-4'>
-          <div className='space-y-3 animate-fadeIn'>
-            <h1 className='text-2xl font-bold text-center mb-6'>
-              🍽️ Sistema de Pedidos
-            </h1>
-            <h2 className='text-lg font-semibold'>Selecione o atendente</h2>
-            {waiters.map((w) => (
-              <button
-                key={w.id}
-                className='w-full p-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700'
-                onClick={() => setActiveWaiter(w.name)}
-              >
-                {w.name}
-              </button>
-            ))}
+      <div className='min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 p-4 pb-20'>
+        {/* TABS DE NAVEGAÇÃO */}
+        <div className='mb-6'>
+          <div className='flex justify-between items-center mb-4'>
+            <h1 className='text-2xl font-bold'>🍽️ Sistema de Pedidos</h1>
+            {activeWaiter && (
+              <div className='text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full'>
+                👤 {activeWaiter}
+              </div>
+            )}
+          </div>
+          <div className='flex bg-gray-200 dark:bg-gray-700 rounded-lg p-1'>
+            <button
+              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                !dashboard
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              onClick={() => setDashboard(false)}
+            >
+              Sistema
+            </button>
+            <button
+              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                dashboard
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              onClick={() => setDashboard(true)}
+            >
+              Dashboard
+            </button>
           </div>
         </div>
-      ) : (
-        <div className='min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 p-4 pb-20'>
-          <div className='mb-4 text-center'>
-            <span className='text-sm text-gray-600'>
-              Funcionário: {activeWaiter}
-            </span>
-          </div>
-          {/* DASHBOARD BUTTON */}
-          <button
-            className='mb-4 w-full p-3 bg-indigo-600 text-white rounded-xl shadow'
-            onClick={() => setDashboard(!dashboard)}
-          >
-            {dashboard ? 'Voltar ao Sistema' : 'Abrir Dashboard'}
-          </button>
 
-          {/* DASHBOARD */}
-          {dashboard && (
-            <div className='animate-fadeIn space-y-4'>
-              <h2 className='text-xl font-semibold'>📊 Status das Mesas</h2>
+        {dashboard ? (
+          // DASHBOARD - sem seleção de funcionário
+          <div className='animate-fadeIn space-y-4'>
+            <h2 className='text-xl font-semibold'>📊 Status das Mesas</h2>
 
-              <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                {tables.map((t) => {
-                  const order = orders[t.id];
-                  return (
-                    <div
-                      key={t.id}
-                      className={`p-4 rounded-xl shadow ${
-                        order
-                          ? 'bg-red-600 text-white'
-                          : 'bg-green-600 text-white'
-                      }`}
-                    >
-                      <div className='font-bold'>{t.name}</div>
-                      <div className='text-sm mt-1'>
-                        {order ? (
-                          <>
-                            <div>Itens: {order.items.length}</div>
-                            <div>Total: € {total(order).toFixed(2)}</div>
-                          </>
-                        ) : (
-                          <span className='text-white-500'>Livre</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* SISTEMA DE PEDIDOS */}
-          {!dashboard && (
-            <>
-              {/* STEP 1 - SELECT TABLE */}
-              {!activeTable && !showCheckout && (
-                <div className='space-y-3 animate-fadeIn'>
-                  <h2 className='text-lg font-semibold'>Selecione a mesa</h2>
-                  {tables.map((t) => (
-                    <TableButton
-                      table={t}
-                      occupied={!!orders[t.id]}
-                      onClick={() => {
-                        createOrder(t.id);
-                        setActiveTable(t.id);
-                      }}
-                      isActive={false} //não está fazendo nada
-                    />
-                  ))}
-                </div>
-              )}
-              {/* STEP 2 - ORDER SCREEN */}
-              {activeTable && !showCheckout && (
-                <div className='space-y-4 animate-fadeIn'>
-                  <button
-                    className='text-sm underline'
-                    onClick={() => leaveTable()}
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+              {tables.map((t) => {
+                const order = orders[t.id];
+                return (
+                  <div
+                    key={t.id}
+                    className={`p-4 rounded-xl shadow ${
+                      order
+                        ? 'bg-red-600 text-white'
+                        : 'bg-green-600 text-white'
+                    }`}
                   >
-                    ← Trocar Mesa
+                    <div className='font-bold'>{t.name}</div>
+                    <div className='text-sm mt-1'>
+                      {order ? (
+                        <>
+                          <div>Itens: {order.items.length}</div>
+                          <div>Total: € {total(order).toFixed(2)}</div>
+                        </>
+                      ) : (
+                        <span className='text-white-500'>Livre</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          // SISTEMA DE PEDIDOS - com seleção de funcionário
+          <>
+            {!activeWaiter ? (
+              <div className='space-y-3 animate-fadeIn'>
+                <h2 className='text-lg font-semibold'>Selecione o atendente</h2>
+                {waiters.map((w) => (
+                  <button
+                    key={w.id}
+                    className='w-full p-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700'
+                    onClick={() => setActiveWaiter(w.name)}
+                  >
+                    {w.name}
                   </button>
-
-                  <h2 className='text-xl font-semibold'>Mesa {activeTable}</h2>
-
-                  {/* ORDER ITEMS */}
-                  <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-4'>
-                    <h3 className='font-semibold mb-2'>Itens do Pedido</h3>
-                    {orders[activeTable].items.length === 0 && (
-                      <p className='text-sm text-gray-500'>
-                        Nenhum item ainda.
-                      </p>
-                    )}
-
-                    {orders[activeTable].items.map((i) => (
-                      <OrderItemRow
-                        item={i}
-                        onDecrease={() => changeQty(activeTable, i.id, -1)}
-                        onDelete={() => deleteItem(activeTable, i.id)}
-                        onIncrease={() => changeQty(activeTable, i.id, 1)}
+                ))}
+              </div>
+            ) : (
+              <div className='space-y-4'>
+                {/* STEP 1 - SELECT TABLE */}
+                {!activeTable && !showCheckout && (
+                  <div className='space-y-3 animate-fadeIn'>
+                    <h2 className='text-lg font-semibold'>Selecione a mesa</h2>
+                    {tables.map((t) => (
+                      <TableButton
+                        table={t}
+                        occupied={!!orders[t.id]}
+                        onClick={() => {
+                          createOrder(t.id);
+                          setActiveTable(t.id);
+                        }}
+                        isActive={false} //não está fazendo nada
                       />
                     ))}
                   </div>
+                )}
+                {/* STEP 2 - ORDER SCREEN */}
+                {activeTable && !showCheckout && (
+                  <div className='space-y-4 animate-fadeIn'>
+                    <button
+                      className='text-sm underline'
+                      onClick={() => leaveTable()}
+                    >
+                      ← Trocar Mesa
+                    </button>
 
-                  {/* MENU CATEGORIES */}
-                  {categories.map((cat) => (
-                    <MenuCategory
-                      category={cat}
-                      items={menu.filter((p) => p.type === cat)}
-                      onAdd={(prod) => addItem(activeTable, prod)}
-                    />
-                  ))}
+                    <h2 className='text-xl font-semibold'>
+                      Mesa {activeTable}
+                    </h2>
 
-                  <button
-                    className='w-full p-4 rounded-xl bg-green-600 text-white font-bold shadow'
-                    onClick={() =>
-                      orders[activeTable].items.length
-                        ? setShowCheckout(true)
-                        : freeTable()
-                    }
-                  >
-                    Finalizar Pedido
-                  </button>
-                </div>
-              )}
+                    {/* ORDER ITEMS */}
+                    <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-4'>
+                      <h3 className='font-semibold mb-2'>Itens do Pedido</h3>
+                      {orders[activeTable].items.length === 0 && (
+                        <p className='text-sm text-gray-500'>
+                          Nenhum item ainda.
+                        </p>
+                      )}
 
-              {/* CHECKOUT */}
-              {showCheckout && activeTable && (
-                <div className='animate-fadeIn'>
-                  <button
-                    className='text-sm underline'
-                    onClick={() => setShowCheckout(false)}
-                  >
-                    ← Voltar ao Pedido
-                  </button>
+                      {orders[activeTable].items.map((i) => (
+                        <OrderItemRow
+                          item={i}
+                          onDecrease={() => changeQty(activeTable, i.id, -1)}
+                          onDelete={() => deleteItem(activeTable, i.id)}
+                          onIncrease={() => changeQty(activeTable, i.id, 1)}
+                        />
+                      ))}
+                    </div>
 
-                  <h2 className='text-xl font-bold mt-2'>
-                    Conta da Mesa {activeTable}
-                  </h2>
-
-                  <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-4 mt-3'>
-                    {orders[activeTable].items.map((i) => (
-                      <OrderItemRow
-                        item={i}
-                        onDecrease={() => changeQty(activeTable, i.id, -1)}
-                        onDelete={() => deleteItem(activeTable, i.id)}
-                        onIncrease={() => changeQty(activeTable, i.id, 1)}
-                        showPrice
+                    {/* MENU CATEGORIES */}
+                    {categories.map((cat) => (
+                      <MenuCategory
+                        category={cat}
+                        items={menu.filter((p) => p.type === cat)}
+                        onAdd={(prod) => addItem(activeTable, prod)}
                       />
                     ))}
 
-                    <div className='text-right font-bold text-lg pt-3'>
-                      Total: € {total(orders[activeTable]).toFixed(2)}
-                    </div>
-
                     <button
-                      className='w-full mt-4 p-4 rounded-xl bg-blue-700 text-white font-bold shadow'
+                      className='w-full p-4 rounded-xl bg-green-600 text-white font-bold shadow'
                       onClick={() =>
-                        printBill(orders[activeTable], activeTable)
+                        orders[activeTable].items.length
+                          ? setShowCheckout(true)
+                          : freeTable()
                       }
                     >
-                      🖨️ Imprimir Conta
-                    </button>
-
-                    <button
-                      className='w-full mt-2 p-4 rounded-xl bg-gray-500 text-white font-bold shadow'
-                      onClick={freeTable}
-                    >
-                      ✔️ Fechar Mesa
+                      Finalizar Pedido
                     </button>
                   </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+                )}
+
+                {/* CHECKOUT */}
+                {showCheckout && activeTable && (
+                  <div className='animate-fadeIn'>
+                    <button
+                      className='text-sm underline'
+                      onClick={() => setShowCheckout(false)}
+                    >
+                      ← Voltar ao Pedido
+                    </button>
+
+                    <h2 className='text-xl font-bold mt-2'>
+                      Conta da Mesa {activeTable}
+                    </h2>
+
+                    <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-4 mt-3'>
+                      {orders[activeTable].items.map((i) => (
+                        <OrderItemRow
+                          item={i}
+                          onDecrease={() => changeQty(activeTable, i.id, -1)}
+                          onDelete={() => deleteItem(activeTable, i.id)}
+                          onIncrease={() => changeQty(activeTable, i.id, 1)}
+                          showPrice
+                        />
+                      ))}
+
+                      <div className='text-right font-bold text-lg pt-3'>
+                        Total: € {total(orders[activeTable]).toFixed(2)}
+                      </div>
+
+                      <button
+                        className='w-full mt-4 p-4 rounded-xl bg-blue-700 text-white font-bold shadow'
+                        onClick={() =>
+                          printBill(orders[activeTable], activeTable)
+                        }
+                      >
+                        🖨️ Imprimir Conta
+                      </button>
+
+                      <button
+                        className='w-full mt-2 p-4 rounded-xl bg-gray-500 text-white font-bold shadow'
+                        onClick={freeTable}
+                      >
+                        ✔️ Fechar Mesa
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };
