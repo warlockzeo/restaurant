@@ -4,7 +4,7 @@ import { ITable } from './types';
 import { IOrder } from './types';
 
 //==========================================
-import { MenuItem, Waiter, Table } from './types';
+import { MenuItem, Table } from './types';
 //==========================================
 
 const tables: ITable[] = [
@@ -189,18 +189,33 @@ export const SAMPLE_MENU: MenuItem[] = [
   { id: 'c2', name: 'Cappuccino', price: 7, type: 'Café' },
 ];
 
-export const SAMPLE_WAITERS: Waiter[] = [
-  { id: 'w1', name: 'Ana' },
-  { id: 'w2', name: 'Bruno' },
-  { id: 'w3', name: 'Carla' },
-];
-
 export const SAMPLE_TABLES: Table[] = Array.from({ length: 10 }).map(
   (_, i) => ({ id: `T${i + 1}`, name: `Mesa ${i + 1}` }),
 );
 
-// Mock de usuários para login
+// Mock de usuários para login e atendentes
 export const SAMPLE_USERS = [
+  {
+    id: '1',
+    username: 'joao',
+    password: '123456',
+    name: 'João Silva',
+    role: 'waiter' as const,
+  },
+  {
+    id: '2',
+    username: 'maria',
+    password: '123456',
+    name: 'Maria Santos',
+    role: 'waiter' as const,
+  },
+  {
+    id: '3',
+    username: 'pedro',
+    password: '123456',
+    name: 'Pedro Costa',
+    role: 'waiter' as const,
+  },
   {
     id: 'admin1',
     username: 'admin',

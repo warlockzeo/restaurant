@@ -19,15 +19,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsLoading(true);
 
     // Simula delay de autenticação
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Verifica credenciais
     const user = SAMPLE_USERS.find(
-      u => u.username === username && u.password === password
+      (u) => u.username === username && u.password === password,
     );
 
     if (user) {
-      onLogin(user);
+      onLogin(user as User);
     } else {
       setError('Usuário ou senha incorretos');
     }
@@ -36,61 +36,57 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1 className="login-title">🍽️ Sistema de Pedidos</h1>
-          <p className="login-subtitle">Faça login para continuar</p>
+    <div className='login-container'>
+      <div className='login-card'>
+        <div className='login-header'>
+          <h1 className='login-title'>🍽️ Sistema de Pedidos</h1>
+          <p className='login-subtitle'>Faça login para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className='login-form'>
           {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
+            <div className='error-message'>
+              <span className='error-icon'>⚠️</span>
               {error}
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="username" className="form-label">
+          <div className='form-group'>
+            <label htmlFor='username' className='form-label'>
               Usuário
             </label>
             <input
-              id="username"
-              type="text"
+              id='username'
+              type='text'
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="form-input"
-              placeholder="Digite seu usuário"
+              className='form-input'
+              placeholder='Digite seu usuário'
               required
-              autoComplete="username"
+              autoComplete='username'
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
+          <div className='form-group'>
+            <label htmlFor='password' className='form-label'>
               Senha
             </label>
             <input
-              id="password"
-              type="password"
+              id='password'
+              type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="form-input"
-              placeholder="Digite sua senha"
+              className='form-input'
+              placeholder='Digite sua senha'
               required
-              autoComplete="current-password"
+              autoComplete='current-password'
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="login-button"
-          >
+          <button type='submit' disabled={isLoading} className='login-button'>
             {isLoading ? (
               <>
-                <span className="spinner"></span>
+                <span className='spinner'></span>
                 Entrando...
               </>
             ) : (
@@ -99,8 +95,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </button>
         </form>
 
-        <div className="login-footer">
-          <p className="demo-info">
+        <div className='login-footer'>
+          <p className='demo-info'>
             <strong>Demo:</strong> admin / 123
           </p>
         </div>
