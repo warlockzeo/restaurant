@@ -57,17 +57,6 @@ const App = () => {
       // Resetar funcionário ao entrar no dashboard (não necessário mais pois usa user logado)
     }
   }, [shouldShowDashboard]);
-
-  useEffect(() => {
-    if (selectedDashboardTable && orders[selectedDashboardTable]) {
-      console.log(
-        '📋 Pedido da Mesa',
-        selectedDashboardTable,
-        ':',
-        orders[selectedDashboardTable],
-      );
-    }
-  }, [selectedDashboardTable, orders]);
   const createOrder = (tableId: string) => {
     if (!orders[tableId]) {
       setOrders((prev) => ({
