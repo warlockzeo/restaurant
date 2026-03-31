@@ -82,33 +82,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <span>🍽️</span>
                     {productName}
                   </h4>
-                  {Object.entries(staffGroups).map(
-                    ([staffName, data]) => (
-                      <div
-                        key={staffName}
-                        className={`${dark ? 'dark:bg-gray-700 dark:text-white' : 'card-gradient text-gray-900'} ml-4 mb-3 p-3 rounded-lg border-l-4 border-blue-500 shadow-sm`}
-                      >
-                        <div className='flex justify-between items-center'>
-                          <div>
-                            <div className='font-bold text-lg'>
-                              {data.totalQty}× vendidos
-                            </div>
-                            <div className='text-sm font-medium text-blue-600 dark:text-blue-400 mt-1'>
-                              👤 Vendido por: {staffName}
-                            </div>
+                  {Object.entries(staffGroups).map(([staffName, data]) => (
+                    <div
+                      key={staffName}
+                      className={`${dark ? 'dark:bg-gray-600 dark:text-white' : 'card-gradient text-gray-900'} ml-4 mb-3 p-3 rounded-lg border-l-4 border-blue-500 shadow-sm`}
+                    >
+                      <div className='flex justify-between items-center'>
+                        <div>
+                          <div className='font-bold text-lg'>
+                            {data.totalQty}× vendidos
                           </div>
-                          <div className='text-right'>
-                            <div className='font-bold text-lg'>
-                              € {data.totalPrice.toFixed(2)}
-                            </div>
-                            <div className='text-sm'>
-                              € {data.items[0]?.price.toFixed(2)} cada
-                            </div>
+                          <div className='text-sm font-medium text-blue-600 dark:text-blue-400 mt-1'>
+                            👤 Vendido por: {staffName}
+                          </div>
+                        </div>
+                        <div className='text-right'>
+                          <div className='font-bold text-lg'>
+                            € {data.totalPrice.toFixed(2)}
+                          </div>
+                          <div className='text-sm'>
+                            € {data.items[0]?.price.toFixed(2)} cada
                           </div>
                         </div>
                       </div>
-                    ),
-                  )}
+                    </div>
+                  ))}
                 </div>
               ),
             );
@@ -152,9 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               }`}
               onClick={() => hasItems && onTableSelect(t.id)}
             >
-              <div className='font-bold text-lg text-white'>
-                {t.name}
-              </div>
+              <div className='font-bold text-lg text-white'>{t.name}</div>
               <div className='text-sm mt-2 text-white'>
                 {hasItems ? (
                   <>

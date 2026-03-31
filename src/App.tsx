@@ -203,7 +203,6 @@ const App = () => {
                 </div>
               )}
               <div className='flex items-center gap-2'>
-                {' '}
                 <button
                   onClick={() => setDark(!dark)}
                   className='px-3 py-2 bg-white/20 backdrop-blur-md text-white rounded-lg hover:bg-white/30 transition-all font-medium border border-white/30'
