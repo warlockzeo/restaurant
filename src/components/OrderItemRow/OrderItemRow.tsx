@@ -7,6 +7,7 @@ type Props = {
   onDecrease: () => void;
   onDelete: () => void;
   showPrice?: boolean;
+  isLast?: boolean;
 };
 
 export const OrderItemRow: React.FC<Props> = ({
@@ -15,8 +16,11 @@ export const OrderItemRow: React.FC<Props> = ({
   onDecrease,
   onDelete,
   showPrice = false,
+  isLast = false,
 }) => (
-  <div className='flex justify-between py-2 border-b border-gray-300 dark:border-gray-700 text-sm'>
+  <div
+    className={`flex justify-between py-2 text-sm ${!isLast ? 'border-b border-gray-300 dark:border-gray-700' : ''}`}
+  >
     <div className='flex items-center gap-2'>
       <button
         disabled={item.qty <= 1}
