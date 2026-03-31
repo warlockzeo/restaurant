@@ -3,7 +3,6 @@ import { Table } from '../../utils/types';
 
 type Props = {
   table: Table;
-  isActive: boolean;
   onClick: () => void;
   occupied: boolean;
 };

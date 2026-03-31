@@ -206,7 +206,7 @@ const App = () => {
 
         {shouldShowDashboard ? (
           // DASHBOARD - sem seleção de funcionário
-          <div className='animate-fadeIn space-y-4'>
+          <div className='transition-opacity duration-500 space-y-4'>
             <h2
               className={`text-2xl font-bold ${dark ? ' dark:text-gray-200' : 'text-gray-800'} flex items-center gap-2`}
             >
@@ -283,11 +283,11 @@ const App = () => {
                             ([staffName, data]) => (
                               <div
                                 key={staffName}
-                                className='ml-4 mb-3 p-3 bg-white dark:bg-gray-600 rounded-lg border-l-4 border-blue-500 shadow-sm'
+                                className={`${dark ? 'dark:bg-gray-700 dark:text-white' : 'card-gradient text-gray-900'} ml-4 mb-3 p-3 rounded-lg border-l-4 border-blue-500 shadow-sm`}
                               >
                                 <div className='flex justify-between items-center'>
                                   <div>
-                                    <div className='font-bold text-gray-900 dark:text-white text-lg'>
+                                    <div className='font-bold text-lg'>
                                       {data.totalQty}× vendidos
                                     </div>
                                     <div className='text-sm font-medium text-blue-600 dark:text-blue-400 mt-1'>
@@ -295,10 +295,10 @@ const App = () => {
                                     </div>
                                   </div>
                                   <div className='text-right'>
-                                    <div className='font-bold text-gray-900 dark:text-white text-lg'>
+                                    <div className='font-bold text-lg'>
                                       € {data.totalPrice.toFixed(2)}
                                     </div>
-                                    <div className='text-sm text-gray-500 dark:text-gray-400'>
+                                    <div className='text-sm'>
                                       € {data.items[0]?.price.toFixed(2)} cada
                                     </div>
                                   </div>
@@ -377,7 +377,7 @@ const App = () => {
             <div className='space-y-4'>
               {/* STEP 1 - SELECT TABLE */}
               {!activeTable && !showCheckout && (
-                <div className='space-y-3 animate-fadeIn'>
+                <div className='space-y-3 transition-opacity duration-500'>
                   <h2 className='text-lg font-semibold '>Selecione a mesa</h2>
                   {tables.map((t) => (
                     <TableButton
@@ -387,7 +387,6 @@ const App = () => {
                         createOrder(t.id);
                         setActiveTable(t.id);
                       }}
-                      isActive={false} //não está fazendo nada
                     />
                   ))}
                 </div>
@@ -395,7 +394,7 @@ const App = () => {
 
               {/* STEP 2 - ORDER SCREEN */}
               {activeTable && !showCheckout && (
-                <div className='space-y-4 animate-fadeIn'>
+                <div className='space-y-4 transition-opacity duration-500'>
                   {/* ORDER ITEMS */}
                   <div
                     className={`${dark ? 'dark:bg-gray-800 dark:text-white' : 'card-gradient text-gray-900'} rounded-xl shadow-lg p-6`}
@@ -510,7 +509,7 @@ const App = () => {
 
               {/* CHECKOUT */}
               {showCheckout && activeTable && (
-                <div className='animate-fadeIn'>
+                <div className='transition-opacity duration-500'>
                   <button
                     className='px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium'
                     onClick={() => setShowCheckout(false)}
