@@ -9,7 +9,7 @@ interface OrderScreenProps {
   orders: OrdersMap;
   menu: MenuItem[];
   categories: Category[];
-  activeWaiter: string;
+  activeStaff: string;
   dark?: boolean;
   onAddItem: (tableId: string, product: MenuItem) => void;
   onDeleteItem: (tableId: string, itemId: string) => void;
@@ -23,7 +23,7 @@ export const OrderScreen: React.FC<OrderScreenProps> = ({
   orders,
   menu,
   categories,
-  activeWaiter,
+  activeStaff,
   dark = false,
   onAddItem,
   onDeleteItem,
@@ -118,7 +118,7 @@ export const OrderScreen: React.FC<OrderScreenProps> = ({
                           name: group.name,
                           price: group.price,
                           qty: 1,
-                          staff: activeWaiter,
+                          staff: activeStaff,
                           type:
                             order.items.find((i) => i.name === group.name)
                               ?.type || 'Comida',

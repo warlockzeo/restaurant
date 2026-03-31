@@ -13,7 +13,7 @@ interface OrderSystemProps {
   orders: OrdersMap;
   activeTable: string;
   showCheckout: boolean;
-  activeWaiter: string;
+  activeStaff: string;
   dark?: boolean;
   onSelectTable: (tableId: string) => void;
   onAddItem: (tableId: string, product: MenuItem) => void;
@@ -33,7 +33,7 @@ export const OrderSystem: React.FC<OrderSystemProps> = ({
   orders,
   activeTable,
   showCheckout,
-  activeWaiter,
+  activeStaff,
   dark = false,
   onSelectTable,
   onAddItem,
@@ -64,7 +64,7 @@ export const OrderSystem: React.FC<OrderSystemProps> = ({
           orders={orders}
           menu={menu}
           categories={categories}
-          activeWaiter={activeWaiter}
+          activeStaff={activeStaff}
           dark={dark}
           onAddItem={onAddItem}
           onDeleteItem={onDeleteItem}

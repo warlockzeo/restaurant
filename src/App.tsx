@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { SAMPLE_MENU, SAMPLE_TABLES } from './utils/mockData';
+import {
+  SAMPLE_MENU,
+  SAMPLE_TABLES,
+  SAMPLE_ORDER_ITEMS,
+  SAMPLE_ORDERS_DB,
+  transformOrderData,
+} from './utils/mockData';
 import { categs, Table, MenuItem, Order, OrderItem } from './utils/types';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { OrderSystem } from './components/OrderSystem/OrderSystem';
@@ -11,14 +17,71 @@ type OrdersMap = Record<string, Order>;
 
 const loadState = (): { orders?: OrdersMap } => {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  } catch {
-    return {};
+    // Para desenvolvimento: permite carregar dados mock se não houver dados no localStorage
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as { orders?: OrdersMap };
+      if (parsed.orders && Object.keys(parsed.orders || {}).length > 0) {
+        return parsed;
+      }
+    }
+
+    // Se não houver dados, retorna vazio (inicia limpo)
+    // Dados mock só são carregados quando o usuário clica no botão
+    return { orders: {} };
+  } catch (error) {
+    console.error(' Erro ao carregar estado:', error);
+    return { orders: {} };
   }
 };
 
 const saveState = (state: { orders: OrdersMap }) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+};
+
+// Função para carregar dados mock (para testes)
+const loadMockData = () => {
+  // Transforma dados estruturados do BD para o formato do sistema
+  const transformedOrders: Record<string, any> = {};
+
+  // Agrupar itens por order_id
+  const groupedByOrder = SAMPLE_ORDER_ITEMS.reduce(
+    (acc, item) => {
+      const orderId = item.order_id;
+      if (!acc[orderId]) {
+        acc[orderId] = [];
+      }
+      acc[orderId].push(item);
+      return acc;
+    },
+    {} as Record<string, any[]>,
+  );
+
+  // Usar SAMPLE_ORDERS_DB para obter table_id de cada order_id
+  Object.entries(groupedByOrder).forEach(([orderId, items]) => {
+    const order = SAMPLE_ORDERS_DB.find((o) => o.id === orderId);
+    if (order && order.status === 'active') {
+      // Apenas ordens ativas
+      const tableId = order.table_id;
+      if (tableId && Array.isArray(items)) {
+        transformedOrders[tableId] = {
+          items: transformOrderData(items),
+          createdAt: Date.now() - Math.random() * 3600000, // Tempo aleatório
+        };
+      }
+    }
+  });
+
+  const mockData = { orders: transformedOrders };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(mockData));
+  window.location.reload(); // Recarrega para carregar os dados
+};
+
+// Função para limpar todos os dados (para testes)
+const clearAllData = () => {
+  localStorage.removeItem(STORAGE_KEY);
+  // Força limpeza completa sem recarregar dados mock
+  window.location.reload(); // Força reload do servidor (bypass cache)
 };
 
 const App = () => {
@@ -40,7 +103,7 @@ const App = () => {
     useState<string>('');
 
   // Usuário logado como atendente
-  const activeWaiter = user?.name || '';
+  const activeStaff = user?.name || '';
 
   // Determinar se deve mostrar dashboard ou sistema baseado no role
   const shouldShowDashboard = user?.role === 'admin';
@@ -50,7 +113,10 @@ const App = () => {
     sessionStorage.setItem('restaurante_dark_mode', dark.toString());
   }, [dark]);
 
+  // Salvar pedidos no localStorage (depois de carregar os dados)
   useEffect(() => saveState({ orders }), [orders]);
+
+  // Resetar mesa ao entrar no dashboard (depois de verificar se há dados)
   useEffect(() => {
     if (shouldShowDashboard) {
       setActiveTable('');
@@ -62,7 +128,6 @@ const App = () => {
       setOrders((prev) => ({
         ...prev,
         [tableId]: {
-          waiterId: null,
           items: [],
           createdAt: Date.now(),
         },
@@ -75,7 +140,6 @@ const App = () => {
 
     const order = prev[tableId] || {
       items: [] as OrderItem[],
-      waiterId: null,
       createdAt: Date.now(),
     };
 
@@ -83,7 +147,7 @@ const App = () => {
     order.items.push({
       ...product,
       qty: 1,
-      staff: activeWaiter,
+      staff: activeStaff,
       id: `${product.id}_${Date.now()}_${Math.random()}`, // ID único para cada venda
     });
 
@@ -115,7 +179,7 @@ const App = () => {
           ...targetItem,
           qty: 1,
           id: `${targetItem.id}_${Date.now()}_${Math.random()}`,
-          staff: activeWaiter,
+          staff: activeStaff,
         };
         const updated = [...order.items, newItem];
         return { ...prev, [tableId]: { ...order, items: updated } };
@@ -159,6 +223,30 @@ const App = () => {
   };
 
   const freeTable = () => {
+    const order = orders[activeTable];
+    if (order && order.items.length > 0) {
+      // Salvar ordem como completed no histórico
+      const completedOrder = {
+        ...order,
+        status: 'completed',
+        completedAt: Date.now(),
+        tableId: activeTable,
+      };
+
+      // Obter ordens completadas existentes
+      const existingCompleted = JSON.parse(
+        localStorage.getItem('completed_orders') || '[]',
+      );
+      const updatedCompleted = [...existingCompleted, completedOrder];
+      localStorage.setItem(
+        'completed_orders',
+        JSON.stringify(updatedCompleted),
+      );
+
+      console.log('💾 Ordem salva como completed:', completedOrder);
+    }
+
+    // Remover ordem das ordens ativas
     const updated = { ...orders };
     delete updated[activeTable];
     setOrders(updated);
@@ -192,6 +280,25 @@ const App = () => {
                 </div>
               )}
               <div className='flex items-center gap-2'>
+                {/* Botões para desenvolvimento - carregar/limpar dados mock */}
+                {process.env.NODE_ENV === 'development' && (
+                  <>
+                    <button
+                      onClick={loadMockData}
+                      className='px-3 py-2 bg-yellow-500/80 backdrop-blur-md text-white rounded-lg hover:bg-yellow-600/80 transition-all font-medium border border-yellow-400/30'
+                      title='Carregar dados de exemplo para testes'
+                    >
+                      📊 Dados Mock
+                    </button>
+                    <button
+                      onClick={clearAllData}
+                      className='px-3 py-2 bg-red-500/80 backdrop-blur-md text-white rounded-lg hover:bg-red-600/80 transition-all font-medium border border-red-400/30'
+                      title='Limpar todos os dados'
+                    >
+                      🗑️ Limpar
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => setDark(!dark)}
                   className='px-3 py-2 bg-white/20 backdrop-blur-md text-white rounded-lg hover:bg-white/30 transition-all font-medium border border-white/30'
@@ -231,7 +338,7 @@ const App = () => {
             orders={orders}
             activeTable={activeTable}
             showCheckout={showCheckout}
-            activeWaiter={activeWaiter}
+            activeStaff={activeStaff}
             dark={dark}
             onSelectTable={(tableId) => {
               createOrder(tableId);

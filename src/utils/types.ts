@@ -10,7 +10,6 @@ export type MenuItem = {
 };
 export type OrderItem = MenuItem & { qty: number; staff: string };
 export type Order = {
-  waiterId: string | null;
   items: OrderItem[];
   createdAt: number;
 };
