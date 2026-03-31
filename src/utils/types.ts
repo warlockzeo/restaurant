@@ -51,3 +51,11 @@ export type Order = {
   items: OrderItem[];
   createdAt: number;
 };
+
+export type User = {
+  id: string;
+  username: string;
+  password: string;
+  name: string;
+  role: 'admin' | 'staff';
+};

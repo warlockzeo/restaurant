@@ -10,12 +10,12 @@ type Props = {
 
 export const TableButton: React.FC<Props> = ({ table, onClick, occupied }) => (
   <button
-    className={`w-full p-3 rounded-xl shadow flex justify-between ${
-      occupied ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+    className={`table-card w-full p-4 rounded-xl shadow-lg flex justify-between items-center hover:scale-105 transition-all ${
+      occupied ? 'occupied' : ''
     }`}
     onClick={onClick}
   >
-    <span>{table.name}</span>
-    <span>➡️</span>
+    <span className='font-bold text-lg'>{table.name}</span>
+    <span className='text-2xl'>➡️</span>
   </button>
 );

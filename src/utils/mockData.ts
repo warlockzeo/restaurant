@@ -198,3 +198,21 @@ export const SAMPLE_WAITERS: Waiter[] = [
 export const SAMPLE_TABLES: Table[] = Array.from({ length: 10 }).map(
   (_, i) => ({ id: `T${i + 1}`, name: `Mesa ${i + 1}` }),
 );
+
+// Mock de usuários para login
+export const SAMPLE_USERS = [
+  {
+    id: 'admin1',
+    username: 'admin',
+    password: '123',
+    name: 'Administrador',
+    role: 'admin' as const,
+  },
+  {
+    id: 'admin2',
+    username: 'warlockzeo',
+    password: 'smtqsgjh',
+    name: 'Mário Leandro',
+    role: 'admin' as const,
+  },
+];
